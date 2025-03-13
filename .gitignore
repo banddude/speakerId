@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Model files
+models/
+*.nemo
+
+# Environment files
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Media and processed files
+*.wav
+*.mp3
+*.m4a
+*.aac
+*.flac
+*.ogg
+processed_conversations/
+speaker_utterances/
+transcript_*.txt
+
+# Cache directories
+hf_cache/
+.cache/
+*/.cache/
+__pycache__/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db 

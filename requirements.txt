@@ -1,0 +1,10 @@
+torch>=1.13.0
+torchaudio>=0.13.0
+numpy>=1.20.0
+scipy>=1.7.3
+scikit-learn>=1.0.2
+pinecone-client==2.2.4
+nemo_toolkit[asr]==1.20.0
+assemblyai>=0.5.0
+pydub>=0.25.1
+python-dotenv>=0.20.0 
