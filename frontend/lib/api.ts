@@ -3,6 +3,31 @@ import type { Conversation, Speaker, ProcessingStatus } from "@/types"
 // API URL configuration
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api"
 
+// Helper to check if API is available
+let apiAvailabilityChecked = false;
+let apiAvailable = false;
+
+export async function checkApiAvailability(): Promise<boolean> {
+  if (apiAvailabilityChecked) return apiAvailable;
+  
+  try {
+    const response = await fetch(`${API_URL}/conversations`, { 
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      // Short timeout for quicker feedback
+      signal: AbortSignal.timeout(3000)
+    });
+    apiAvailable = response.ok;
+    console.log(`API connection ${apiAvailable ? 'successful' : 'failed'}: ${API_URL}`);
+  } catch (error) {
+    console.error('API connection error:', error);
+    apiAvailable = false;
+  }
+  
+  apiAvailabilityChecked = true;
+  return apiAvailable;
+}
+
 /**
  * Upload and process an audio file
  */
@@ -41,6 +66,14 @@ export async function getProcessingStatus(id: string): Promise<ProcessingStatus>
  * Get all conversations
  */
 export async function getConversations(): Promise<Conversation[]> {
+  // Check API availability first
+  const isAvailable = await checkApiAvailability();
+  if (!isAvailable) {
+    console.warn('API not available, returning mock data');
+    // You could return mock data here if the API is unavailable
+    return [];
+  }
+
   const response = await fetch(`${API_URL}/conversations`)
 
   if (!response.ok) {
@@ -129,8 +162,8 @@ export async function updateConversationSpeaker(
   })
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || "Failed to update conversation speaker")
+    const errorData = await response.json()
+    throw new Error(errorData.error || "Failed to update conversation speaker")
   }
 
   return response.json()

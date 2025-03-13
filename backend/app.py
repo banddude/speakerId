@@ -23,7 +23,16 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+
+# Configure CORS to allow requests from the frontend
+# This is more explicit than the simple CORS(app) to ensure proper cross-origin support
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 # Configuration
 UPLOAD_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'uploads'))
@@ -32,55 +41,76 @@ CONVERSATIONS_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), '
 # Create upload directory if it doesn't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Simple health check endpoint
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint to verify API is running"""
+    return jsonify({
+        "status": "ok",
+        "timestamp": datetime.now().isoformat(),
+        "service": "speaker-id-api"
+    })
+
 @app.route('/api/conversations', methods=['GET'])
 def get_conversations():
     """Get all processed conversations"""
+    # Log the request for debugging
+    logger.info(f"Received request for conversations from {request.remote_addr}")
+    
     conversations = []
     
     # Walk through the processed_conversations directory
-    for conversation_dir in os.listdir(CONVERSATIONS_FOLDER):
-        conversation_path = os.path.join(CONVERSATIONS_FOLDER, conversation_dir)
+    try:
+        conversation_dirs = os.listdir(CONVERSATIONS_FOLDER)
+        logger.info(f"Found {len(conversation_dirs)} potential conversation directories")
         
-        # Only include directories
-        if os.path.isdir(conversation_path):
-            # Check for metadata.json
-            metadata_path = os.path.join(conversation_path, 'metadata.json')
-            if os.path.exists(metadata_path):
-                try:
-                    with open(metadata_path, 'r') as f:
-                        metadata = json.load(f)
-                    
-                    # Create summary for the frontend
-                    conversation_summary = {
-                        'id': conversation_dir,
-                        'filename': metadata.get('original_audio', 'Unknown'),
-                        'duration': metadata.get('duration_seconds', 0),
-                        'created': metadata.get('date_processed', datetime.now().isoformat()),
-                        'segments': []
-                    }
-                    
-                    # Add utterances as segments
-                    for utterance in metadata.get('utterances', []):
-                        segment = {
-                            'id': utterance.get('id', ''),
-                            'start': utterance.get('start_ms', 0) / 1000,  # Convert to seconds
-                            'end': utterance.get('end_ms', 0) / 1000,      # Convert to seconds
-                            'text': utterance.get('text', ''),
-                            'speaker': {
-                                'speakerId': utterance.get('embedding_id', ''),
-                                'speakerName': utterance.get('speaker', 'Unknown'),
-                                'confidence': utterance.get('confidence', 0) * 100,  # Convert to percentage
-                                'isUnknown': utterance.get('speaker', '').lower() == 'unknown'
-                            }
+        for conversation_dir in conversation_dirs:
+            conversation_path = os.path.join(CONVERSATIONS_FOLDER, conversation_dir)
+            
+            # Only include directories
+            if os.path.isdir(conversation_path):
+                # Check for metadata.json
+                metadata_path = os.path.join(conversation_path, 'metadata.json')
+                if os.path.exists(metadata_path):
+                    try:
+                        with open(metadata_path, 'r') as f:
+                            metadata = json.load(f)
+                        
+                        # Create summary for the frontend
+                        conversation_summary = {
+                            'id': conversation_dir,
+                            'filename': metadata.get('original_audio', 'Unknown'),
+                            'duration': metadata.get('duration_seconds', 0),
+                            'created': metadata.get('date_processed', datetime.now().isoformat()),
+                            'segments': []
                         }
-                        conversation_summary['segments'].append(segment)
-                    
-                    conversations.append(conversation_summary)
-                except Exception as e:
-                    logger.error(f"Error processing conversation {conversation_dir}: {str(e)}")
+                        
+                        # Add utterances as segments
+                        for utterance in metadata.get('utterances', []):
+                            segment = {
+                                'id': utterance.get('id', ''),
+                                'start': utterance.get('start_ms', 0) / 1000,  # Convert to seconds
+                                'end': utterance.get('end_ms', 0) / 1000,      # Convert to seconds
+                                'text': utterance.get('text', ''),
+                                'speaker': {
+                                    'speakerId': utterance.get('embedding_id', ''),
+                                    'speakerName': utterance.get('speaker', 'Unknown'),
+                                    'confidence': utterance.get('confidence', 0) * 100,  # Convert to percentage
+                                    'isUnknown': utterance.get('speaker', '').lower() == 'unknown'
+                                }
+                            }
+                            conversation_summary['segments'].append(segment)
+                        
+                        conversations.append(conversation_summary)
+                    except Exception as e:
+                        logger.error(f"Error processing conversation {conversation_dir}: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error listing conversation directories: {str(e)}")
+        return jsonify({"error": f"Error listing conversations: {str(e)}"}), 500
     
     # Sort by creation date (newest first)
     conversations.sort(key=lambda x: x['created'], reverse=True)
+    logger.info(f"Returning {len(conversations)} conversations")
     return jsonify(conversations)
 
 @app.route('/api/conversations/<conversation_id>', methods=['GET'])
@@ -321,4 +351,8 @@ def server_error(error):
     return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
+    logger.info(f"Starting Flask application on port 5000")
+    logger.info(f"CORS configured for origins: http://localhost:3000, http://127.0.0.1:3000")
+    logger.info(f"Conversations folder: {CONVERSATIONS_FOLDER}")
+    logger.info(f"Upload folder: {UPLOAD_FOLDER}")
     app.run(debug=True, port=5000) 
