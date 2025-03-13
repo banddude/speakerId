@@ -32,15 +32,22 @@ env/
 venv/
 ENV/
 
-# Media and processed files
+# Media files - exclude audio but keep conversation metadata
 *.wav
 *.mp3
 *.m4a
 *.aac
 *.flac
 *.ogg
-processed_conversations/
-speaker_utterances/
+processed_conversations/**/*.wav
+processed_conversations/**/*.mp3
+processed_conversations/**/*.m4a
+speaker_utterances/**/*.wav
+speaker_utterances/**/*.mp3
+speaker_utterances/**/*.m4a
+speaker_utterances/**/*.txt
+
+# Legacy transcripts
 transcript_*.txt
 
 # Cache directories
