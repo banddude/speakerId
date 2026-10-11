@@ -41,14 +41,14 @@ This Flask-based backend provides API endpoints for the Speaker Identification S
    venv\Scripts\activate     # Windows
    ```
 
-2. Install dependencies:
+2. From the repository root, install the backend and its shared speech dependencies:
    ```
-   pip install -r requirements.txt
+   pip install -r backend/requirements.txt
    ```
 
 3. Run the server:
    ```
-   python app.py
+   python backend/app.py
    ```
 
 ## Integration with Frontend
