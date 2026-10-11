@@ -203,7 +203,7 @@ export default function TranscriptionPage({ params }: { params: { id: string } }
         open={renameDialogOpen}
         onOpenChange={setRenameDialogOpen}
         speakerName={selectedSpeaker}
-        transcriptionId={params.id}
+        conversationId={params.id}
       />
     </div>
   )
