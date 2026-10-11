@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { processAudioFile, getProcessingStatus } from "@/lib/api-mock"
+import { processAudioFile, getProcessingStatus } from "@/lib/api"
 import type { ProcessingStatus } from "@/types"
 
 export function ProcessAudio() {
