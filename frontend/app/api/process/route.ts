@@ -1,11 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { exec } from "child_process"
+import { execFile } from "child_process"
 import { promisify } from "util"
 import fs from "fs"
 import path from "path"
 import { v4 as uuidv4 } from "uuid"
 
-const execAsync = promisify(exec)
+const execFileAsync = promisify(execFile)
 
 // This would be configured based on your setup
 const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(process.cwd(), "data", "uploads")
@@ -14,9 +14,9 @@ const PROCESSING_STATUS_DIR = process.env.PROCESSING_STATUS_DIR || path.join(pro
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const file = formData.get("file") as File
+    const file = formData.get("file")
 
-    if (!file) {
+    if (!(file instanceof File)) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
@@ -32,7 +32,10 @@ export async function POST(request: NextRequest) {
     // Generate unique ID for this processing job
     const processingId = uuidv4()
     const filename = file.name
-    const filePath = path.join(UPLOADS_DIR, `${processingId}_${filename}`)
+    // Use only a generated name and a simple extension for disk storage.
+    const extension = path.extname(filename).toLowerCase()
+    const safeExtension = /^\.[a-z0-9]{1,10}$/.test(extension) ? extension : ".audio"
+    const filePath = path.resolve(UPLOADS_DIR, `${processingId}${safeExtension}`)
 
     // Write the file to disk
     const buffer = Buffer.from(await file.arrayBuffer())
@@ -51,7 +54,8 @@ export async function POST(request: NextRequest) {
     fs.writeFileSync(
       statusFilePath,
       JSON.stringify(initialStatus, null, 2),
-    )(
+    );
+    void (
       // Start processing in the background
       // This would typically be handled by a job queue in production
       async () => {
@@ -67,7 +71,7 @@ export async function POST(request: NextRequest) {
           fs.writeFileSync(statusFilePath, JSON.stringify(processingStatus, null, 2))
 
           // Execute the Python script
-          const { stdout, stderr } = await execAsync(`python identify_conversation.py "${filePath}"`)
+          const { stdout, stderr } = await execFileAsync("python", ["identify_conversation.py", filePath])
 
           if (stderr) {
             console.error("Error executing Python script:", stderr)
@@ -111,7 +115,7 @@ export async function POST(request: NextRequest) {
           }
           fs.writeFileSync(statusFilePath, JSON.stringify(failedStatus, null, 2))
         }
-      },
+      }
     )()
 
     return NextResponse.json(initialStatus)

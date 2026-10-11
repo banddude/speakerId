@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getConversations } from "@/lib/api-mock"
+import { getConversations } from "@/lib/api"
 import type { Conversation } from "@/types"
 
 export function ConversationList() {

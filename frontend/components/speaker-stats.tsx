@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RenameSpeakerDialog } from "@/components/rename-speaker-dialog"
-import { getSpeakers } from "@/lib/api-mock"
+import { getSpeakers } from "@/lib/api"
 import type { Speaker } from "@/types"
 
 export function SpeakerStats() {

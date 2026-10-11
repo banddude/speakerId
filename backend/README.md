@@ -41,14 +41,14 @@ This Flask-based backend provides API endpoints for the Speaker Identification S
    venv\Scripts\activate     # Windows
    ```
 
-2. Install dependencies:
+2. From the repository root, install the backend and its shared speech dependencies:
    ```
-   pip install -r requirements.txt
+   pip install -r backend/requirements.txt
    ```
 
 3. Run the server:
    ```
-   python app.py
+   python backend/app.py
    ```
 
 ## Integration with Frontend
@@ -80,4 +80,15 @@ To modify or extend the backend:
 
 - Add new endpoints in `app.py`
 - Create new utility functions in the `utils` folder
-- Update models in the `models` folder 
+- Update models in the `models` folder
+## Compatibility checks
+
+CI runs `python -m unittest discover -s backend -p 'test_api_smoke.py' -v`
+with the declared Flask/CORS versions and inert speech providers. Fixtures are
+synthetic; no service credentials or recordings are needed.
+
+For a full local NeMo API check after installing backend requirements, run
+`python backend/smoke_speaker_model.py` from the repository root. The first run
+downloads NVIDIA's public TitaNet model. It generates a tone and checks for a
+finite 192-dimensional embedding; it does not call AssemblyAI or Pinecone.
+This verifies model/API compatibility, not real speaker-identification accuracy.

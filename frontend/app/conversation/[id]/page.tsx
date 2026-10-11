@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { RenameSpeakerDialog } from "@/components/rename-speaker-dialog"
 import { AudioPlayer } from "@/components/audio-player"
-import { getConversation } from "@/lib/api-mock"
+import { getConversation } from "@/lib/api"
 import type { Conversation, TranscriptSegment } from "@/types"
 
 export default function ConversationPage({ params }: { params: { id: string } }) {
